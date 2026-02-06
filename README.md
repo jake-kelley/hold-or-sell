@@ -11,10 +11,11 @@ Open `index.html` in your browser. No build step or server required.
 - **Dynamic Updates**: All values recalculate instantly as you change inputs
 - **Amortization**: Accurate loan balance calculation using standard amortization formula
 - **Capital Gains**: Handles primary residence exemption ($500k MFJ) for first 3 years
-- **Depreciation**: Includes rental property depreciation tax benefit
 - **Opportunity Cost**: Shows what you're losing if rental cash flow is negative
 - **Visual Chart**: Compare scenarios over time with Chart.js visualization
 - **Detailed Breakdown**: Year-by-year analysis of all values
+- **Input Validation**: All inputs are silently clamped to sensible ranges
+- **URL Persistence**: All inputs are saved to URL parameters — bookmark or share to restore your scenario
 
 ## Inputs
 
@@ -32,11 +33,9 @@ Open `index.html` in your browser. No build step or server required.
 | Rental Price | Expected monthly rent |
 | Annual Rent Increase | Expected yearly rent increase % |
 | Property Management Fee | % of rent for property manager |
-| Costs to Rent | One-time costs to prepare for renting |
 | Rental Tax Rate | Your marginal tax rate on rental income |
 | Home Appreciation | Expected annual appreciation % |
 | Selling Fees | Realtor + closing costs % |
-| Costs to Sell | One-time costs to prepare for selling |
 | Capital Gains Tax | Tax rate on profits above basis |
 | Investment Return | Expected return if you invest sale proceeds |
 | Years to Hold | How many years to analyze |
@@ -47,7 +46,7 @@ Open `index.html` in your browser. No build step or server required.
 ### Rent Scenario
 - Calculates annual rental income with appreciation
 - Subtracts all costs (PITI, HOA, maintenance, property management)
-- Applies rental property depreciation tax benefit
+- Applies tax on positive rental profit
 - Tracks cumulative cash flow and equity growth
 
 ### Sell Scenario
@@ -65,8 +64,4 @@ The tool shows which option gives you more net worth at each year:
 - `index.html` - Main application
 - `styles.css` - Styling
 - `calculator.js` - All calculation logic
-- `verify_math.py` - Python script to verify calculations
-
-## Verification
-
-Run `python verify_math.py` to independently verify all calculations match the JavaScript implementation.
+- `dev-status.md` - Developer context and architectural decisions

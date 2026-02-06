@@ -20,11 +20,9 @@ const inputs = {
   rentalPrice: document.getElementById("rentalPrice"),
   annualRentIncrease: document.getElementById("annualRentIncrease"),
   propertyMgmtFee: document.getElementById("propertyMgmtFee"),
-  costsToRent: document.getElementById("costsToRent"),
   rentalTaxRate: document.getElementById("rentalTaxRate"),
   homeAppreciation: document.getElementById("homeAppreciation"),
   sellingFees: document.getElementById("sellingFees"),
-  costsToSell: document.getElementById("costsToSell"),
   capitalGainsTax: document.getElementById("capitalGainsTax"),
   investmentReturn: document.getElementById("investmentReturn"),
   yearsToHold: document.getElementById("yearsToHold"),
@@ -98,19 +96,6 @@ function calculateRemainingBalance(
 }
 
 /**
- * Calculate monthly principal and interest breakdown
- * @param {number} balance - Current loan balance
- * @param {number} monthlyRate - Monthly interest rate
- * @param {number} monthlyPayment - Monthly P&I payment
- * @returns {object} {principal, interest}
- */
-function calculateMonthlyBreakdown(balance, monthlyRate, monthlyPayment) {
-  const interest = balance * monthlyRate;
-  const principal = monthlyPayment - interest;
-  return { principal: Math.max(0, principal), interest };
-}
-
-/**
  * Get months elapsed since loan origination
  * @param {string} originDateStr - Loan origination date string
  * @returns {number} Months elapsed (payments made)
@@ -128,16 +113,6 @@ function getMonthsElapsed(originDateStr) {
 }
 
 /**
- * Calculate total months remaining on a 30-year mortgage
- * @param {string} originDateStr - Loan origination date
- * @returns {number} Months remaining
- */
-function getMonthsRemaining(originDateStr) {
-  const totalMonths = 360; // 30-year mortgage
-  return totalMonths - getMonthsElapsed(originDateStr);
-}
-
-/**
  * Format number as currency
  * @param {number} value
  * @returns {string}
@@ -152,18 +127,71 @@ function formatCurrency(value) {
 }
 
 /**
+ * Silently clamp a numeric input to a valid range.
+ * Writes the clamped value back to the input element.
+ * @param {HTMLInputElement} input - The input element
+ * @param {number} min - Minimum allowed value
+ * @param {number} max - Maximum allowed value
+ * @param {boolean} isInt - Whether to parse as integer
+ * @returns {number} The clamped value
+ */
+function clampInput(input, min, max, isInt = false) {
+  let val = isInt ? parseInt(input.value) : parseFloat(input.value);
+  if (isNaN(val)) val = min;
+  val = Math.min(max, Math.max(min, val));
+  if (input.value !== "" && parseFloat(input.value) !== val) {
+    input.value = val;
+  }
+  return val;
+}
+
+/**
+ * Validate and clamp all inputs to sensible ranges.
+ * Called at the start of each calculation cycle.
+ */
+function validateInputs() {
+  clampInput(inputs.purchasePrice, 0, Infinity);
+  clampInput(inputs.originalLoanAmount, 0, Infinity);
+  clampInput(inputs.interestRate, 0, 30);
+  clampInput(inputs.currentHomeValue, 0, Infinity);
+  clampInput(inputs.monthlyHOA, 0, Infinity);
+  clampInput(inputs.monthlyTaxes, 0, Infinity);
+  clampInput(inputs.monthlyInsurance, 0, Infinity);
+  clampInput(inputs.monthlyMaintenance, 0, Infinity);
+  clampInput(inputs.rentalPrice, 0, Infinity);
+  clampInput(inputs.annualRentIncrease, 0, 20);
+  clampInput(inputs.propertyMgmtFee, 0, 100);
+  clampInput(inputs.rentalTaxRate, 0, 100);
+  clampInput(inputs.homeAppreciation, -20, 30);
+  clampInput(inputs.sellingFees, 0, 100);
+  clampInput(inputs.capitalGainsTax, 0, 100);
+  clampInput(inputs.investmentReturn, -50, 50);
+  clampInput(inputs.yearsToHold, 1, 30, true);
+
+  // Validate loan origination date: must be a valid date not in the future
+  const dateVal = inputs.loanOriginDate.value;
+  const parsed = new Date(dateVal);
+  if (!dateVal || isNaN(parsed.getTime()) || parsed > new Date()) {
+    inputs.loanOriginDate.value = new Date().toISOString().split("T")[0];
+  }
+}
+
+/**
  * Main calculation function
  */
 function calculate() {
+  // Validate all inputs first (silent clamping)
+  validateInputs();
+
   // Update the displayed monthly payment first
   const monthlyPI = updateMonthlyPaymentDisplay();
   
-  // Get all input values
+  // Get all input values (now guaranteed to be valid after validation)
   const purchasePrice = parseFloat(inputs.purchasePrice.value) || 0;
   const loanOriginDate = inputs.loanOriginDate.value;
   const originalLoanAmount = parseFloat(inputs.originalLoanAmount.value) || 0;
   const interestRate = parseFloat(inputs.interestRate.value) || 0;
-   const mortgageTerm = parseInt(inputs.mortgageTerm.value) || 30;
+  const mortgageTerm = parseInt(inputs.mortgageTerm.value) || 30;
   const currentHomeValue = parseFloat(inputs.currentHomeValue.value) || 0;
   const monthlyHOA = parseFloat(inputs.monthlyHOA.value) || 0;
   const monthlyTaxes = parseFloat(inputs.monthlyTaxes.value) || 0;
@@ -172,11 +200,9 @@ function calculate() {
   const rentalPrice = parseFloat(inputs.rentalPrice.value) || 0;
   const annualRentIncrease = parseFloat(inputs.annualRentIncrease.value) || 0;
   const propertyMgmtFee = parseFloat(inputs.propertyMgmtFee.value) || 0;
-  const costsToRent = parseFloat(inputs.costsToRent.value) || 0;
   const rentalTaxRate = parseFloat(inputs.rentalTaxRate.value) || 0;
   const homeAppreciation = parseFloat(inputs.homeAppreciation.value) || 0;
   const sellingFees = parseFloat(inputs.sellingFees.value) || 0;
-  const costsToSell = parseFloat(inputs.costsToSell.value) || 0;
   const capitalGainsTax = parseFloat(inputs.capitalGainsTax.value) || 0;
   const investmentReturn = parseFloat(inputs.investmentReturn.value) || 0;
   const yearsToHold = parseInt(inputs.yearsToHold.value) || 10;
@@ -186,14 +212,6 @@ function calculate() {
   const monthlyRate = interestRate / 100 / 12;
   const totalLoanMonths = mortgageTerm * 12; // Use selected mortgage term
   const monthsElapsed = getMonthsElapsed(loanOriginDate);
-
-  // Calculate current loan balance (at year 0 / today)
-  const currentBalance = calculateRemainingBalance(
-    originalLoanAmount,
-    monthlyRate,
-    totalLoanMonths,
-    monthsElapsed,
-  );
 
   // Monthly PITI + HOA (total monthly ownership cost)
   const monthlyPITI = monthlyPI + monthlyTaxes + monthlyInsurance;
@@ -296,11 +314,6 @@ function calculate() {
     }
     cumulativeInvestedCashFlow += yearCashFlow;
 
-    // Total rental scenario net worth at this year:
-
-    
-
-
     // --- SALE SCENARIO ---
     // Home value at time of sale
     const salePrice = homeValue;
@@ -316,20 +329,26 @@ function calculate() {
 
     // Capital gains tax exemption for primary residence (2 of 5 years)
     // If primary residence and within 3 years of holding (still qualify), exempt up to $500k
+    // Capital gains tax exemption based on user specific rules:
+    // 1. If underwater (Home Value - Loan - Fees < 0), no gain to tax (simplified assumption, really it's based on basis but this proxies "no cash to pay")
+    // 2. OR If Primary Residence AND owned <= 3 years (Exclusion applies)
+    // 3. Otherwise, tax the full gain.
     let capitalGainsTaxOwed = 0;
+    
+    // Check if underwater on the sale transaction itself
+    const isUnderwater = netSaleProceeds < 0; // proceeds = Sale - Loan - Fees
+
     if (capitalGain > 0) {
-      if (isPrimaryResidence && year <= 3) {
-        // Exempt up to $500k for married filing jointly
-        const taxableGain = Math.max(0, capitalGain - 500000);
-        capitalGainsTaxOwed = taxableGain * (capitalGainsTax / 100);
+      if (isUnderwater) {
+         capitalGainsTaxOwed = 0;
+      } else if (isPrimaryResidence && year <= 3) {
+        // Exempt (Primary Residence Exclusion assumption for short hold)
+        capitalGainsTaxOwed = 0;
       } else {
         // Full capital gains tax
         capitalGainsTaxOwed = capitalGain * (capitalGainsTax / 100);
       }
     }
-    // Depreciation recapture tax (removed per user request)
-    const depreciationRecaptureTax = 0;
-
     // Net after-tax sale proceeds
     const netAfterTaxProceeds = netSaleProceeds - capitalGainsTaxOwed;
 
@@ -345,10 +364,12 @@ function calculate() {
         sellYear0Baseline = netAfterTaxProceeds;
     }
 
-    // Calculate "Sell Year 0 + Invest Cash Flow" for Chart
-    // Baseline grown by investment return + Accumulated Cash Flow Value
-    const sellYear0Growth = sellYear0Baseline * Math.pow(1 + investmentReturn / 100, year);
-    const sellYear0Total = sellYear0Growth + cumulativeOpportunityCost;
+    // Calculate "Sell Year 0 Invested" for Chart
+    // User Rule: If Year 0 Proceeds (Baseline) is positive, grow it by investment return.
+    // If negative, show that negative value forever (no growth/debt interest).
+    const sellYear0Total = sellYear0Baseline > 0 
+        ? sellYear0Baseline * Math.pow(1 + investmentReturn / 100, year) 
+        : sellYear0Baseline;
 
     // Total rental scenario net worth at this year:
     // Net Proceeds (liquidatable equity) + Invested Value of Cash Flows (which tracks opportunity cost of losses)
@@ -357,7 +378,14 @@ function calculate() {
 
     // Simple Net Worth (Net Proceeds + Actual Cash Flow) - requested by user for table
     // Also use Net Proceeds here to be consistent (Liquidatable Value)
-    const simpleRentalNetWorth = netAfterTaxProceeds + cumulativeRentalCashFlow;
+    // Simple Net Worth (Net Proceeds + Actual Cash Flow) - requested by user for table
+    // Also use Net Proceeds here to be consistent (Liquidatable Value)
+    // User Update (Feb 2026): If Year 0 and we have positive proceeds, show $0 (don't show the cash out value).
+    // If Year 0 and negative (underwater), show the negative value.
+    let simpleRentalNetWorth = netAfterTaxProceeds + cumulativeRentalCashFlow;
+    if (year === 0 && netAfterTaxProceeds > 0) {
+        simpleRentalNetWorth = 0;
+    }
 
     // For the SELL scenario, we want to compare apples to apples
     // The "sell now" value should show what you'd have at the END of the analysis period
@@ -396,6 +424,10 @@ function calculate() {
       sellYear0Total, // For chart
       // Comparison
       betterOption: rentalNetWorth > investedValue ? "rent" : "sell",
+      monthlyBreakdown: {
+        rent: year === 0 ? 0 : currentRent,
+        expenses: year === 0 ? 0 : monthlyOwnershipCost + (annualMgmtFee / 12)
+      }
     });
   }
 
@@ -403,7 +435,10 @@ function calculate() {
   updateChart(yearlyData);
   updateTable(yearlyData);
   updateSummary(yearlyData);
-  updateDetailedBreakdown(yearlyData);
+  // updateDetailedBreakdown(yearlyData); // Removed from UI
+
+  // Persist current inputs to URL
+  saveToURL();
 }
 
 /**
@@ -434,7 +469,7 @@ function updateChart(data) {
           tension: 0.3,
         },
         {
-          label: "Sell Year 0 + Invest Cash Flow",
+          label: "Sell Now + Invest Proceeds",
           data: saleData,
           borderColor: "#60a5fa",
           backgroundColor: "rgba(96, 165, 250, 0.1)",
@@ -453,10 +488,34 @@ function updateChart(data) {
           },
         },
         tooltip: {
+          mode: "index",
+          intersect: false,
           callbacks: {
-            label: function (context) {
-              return context.dataset.label + ": " + formatCurrency(context.raw);
-            },
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += formatCurrency(context.parsed.y);
+              }
+              
+              // Add monthly breakdown for the Rent scenario
+              if (context.datasetIndex === 0) { // Rent Line
+                const yearIndex = context.dataIndex;
+                const dataPoint = data[yearIndex];
+                if (dataPoint && dataPoint.monthlyBreakdown) {
+                  const rent = formatCurrency(dataPoint.monthlyBreakdown.rent);
+                  const exp = formatCurrency(dataPoint.monthlyBreakdown.expenses);
+                  return [
+                    label,
+                    `   Monthly Rent: ${rent}`,
+                    `   Monthly Expenses: ${exp}`
+                  ];
+                }
+              }
+              return label;
+            }
           },
         },
       },
@@ -495,7 +554,10 @@ function updateTable(data) {
             <td>${formatCurrency(d.homeValue)}</td>
             <td>${formatCurrency(d.loanBalance)}</td>
             <td>${formatCurrency(d.equity)}</td>
+            <td>${formatCurrency(d.sellingCosts)}</td>
+            <td>${formatCurrency(d.capitalGainsTaxOwed)}</td>
             <td class="${d.netAfterTaxProceeds >= 0 ? "positive" : "negative"}">${formatCurrency(d.netAfterTaxProceeds)}</td>
+            <td class="${d.netRentalCashFlow >= 0 ? "positive" : "negative"}">${formatCurrency(d.netRentalCashFlow)}</td>
             <td class="${d.cumulativeRentalCashFlow >= 0 ? "positive" : "negative"}">${formatCurrency(d.cumulativeRentalCashFlow)}</td>
             <td class="${d.simpleRentalNetWorth >= 0 ? "positive" : "negative"}">${formatCurrency(d.simpleRentalNetWorth)}</td>
             <td class="${d.sellYear0Total >= 0 ? "positive" : "negative"}">${formatCurrency(d.sellYear0Total)}</td>
@@ -510,8 +572,12 @@ function updateTable(data) {
  */
 function updateSummary(data) {
   const finalYear = data[data.length - 1];
-  const endRentalValue = finalYear.rentalNetWorth;
-  const endSellValue = finalYear.investedValue;
+  // Update: User requested "Rent Now + Sell Later" (Cash Out + Rent P/L)
+  const endRentalValue = finalYear.simpleRentalNetWorth;
+
+  // Update: User requested "Sell Now + Invest Proceeds" (Sell Year 0 + Invest)
+  const endSellValue = finalYear.sellYear0Total;
+  
   const difference = endRentalValue - endSellValue;
 
   // Find crossover point
@@ -520,10 +586,10 @@ function updateSummary(data) {
     const prev = data[i - 1];
     const curr = data[i];
     if (
-      (prev.rentalNetWorth < prev.investedValue &&
-        curr.rentalNetWorth >= curr.investedValue) ||
-      (prev.rentalNetWorth > prev.investedValue &&
-        curr.rentalNetWorth <= curr.investedValue)
+      (prev.simpleRentalNetWorth < prev.sellYear0Total &&
+        curr.simpleRentalNetWorth >= curr.sellYear0Total) ||
+      (prev.simpleRentalNetWorth > prev.sellYear0Total &&
+        curr.simpleRentalNetWorth <= curr.sellYear0Total)
     ) {
       crossoverYear = i;
       break;
@@ -537,11 +603,11 @@ function updateSummary(data) {
         <h3>📊 Summary at Year ${finalYear.year}</h3>
         <div class="summary-grid">
             <div class="summary-item">
-                <div class="label">Rent Scenario Net Worth</div>
+                <div class="label">Rent Now + Sell Later</div>
                 <div class="value ${endRentalValue >= 0 ? "positive" : "negative"}">${formatCurrency(endRentalValue)}</div>
             </div>
             <div class="summary-item">
-                <div class="label">Sell & Invest Net Worth</div>
+                <div class="label">Sell Now + Invest Proceeds</div>
                 <div class="value ${endSellValue >= 0 ? "positive" : "negative"}">${formatCurrency(endSellValue)}</div>
             </div>
             <div class="summary-item">
@@ -562,10 +628,6 @@ function updateSummary(data) {
             `
                 : ""
             }
-            <div class="summary-item">
-                <div class="label">Total Opportunity Cost (if renting)</div>
-                <div class="value ${finalYear.cumulativeOpportunityCost > 0 ? "negative" : "positive"}">${formatCurrency(finalYear.cumulativeOpportunityCost)}</div>
-            </div>
         </div>
     `;
   
@@ -629,5 +691,39 @@ function updateDetailedBreakdown(data) {
   });
 }
 
-// Initial calculation
+/**
+ * Save all current input values to URL search parameters.
+ * Uses history.replaceState to avoid polluting browser history.
+ */
+function saveToURL() {
+  const params = new URLSearchParams();
+
+  Object.entries(inputs).forEach(([key, el]) => {
+    if (!el || key === "monthlyPI") return; // Skip calculated field
+    params.set(key, el.value);
+  });
+
+  const newURL = `${window.location.pathname}?${params.toString()}`;
+  history.replaceState(null, "", newURL);
+}
+
+/**
+ * Load input values from URL search parameters.
+ * If a parameter exists in the URL, it overwrites the HTML default.
+ * Called once before the initial calculation.
+ */
+function loadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.size === 0) return; // No params, use HTML defaults
+
+  Object.entries(inputs).forEach(([key, el]) => {
+    if (!el || key === "monthlyPI") return; // Skip calculated field
+    if (params.has(key)) {
+      el.value = params.get(key);
+    }
+  });
+}
+
+// Load saved state from URL, then run initial calculation
+loadFromURL();
 calculate();

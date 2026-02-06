@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rent vs Sell Calculator</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
   </head>
   <body>
     <div class="container">
@@ -14,141 +14,139 @@
         Compare the financial outcomes of renting vs selling your property
       </p>
 
-      <div class="inputs-grid">
-        <!-- Property Details -->
+      <div class="calculator-layout">
+        <!-- Main Input Section -->
         <div class="input-section">
-          <h2>Property Details</h2>
-          <div class="input-group">
-            <label for="purchasePrice" title="What you paid when you bought the home">Original Purchase Price ($)</label>
-            <input type="number" id="purchasePrice" value="492000" />
-          </div>
-          <div class="input-group">
-            <label for="loanOriginDate" title="When your mortgage started. Used to calculate months paid.">Loan Origination Date</label>
-            <input type="date" id="loanOriginDate" value="2022-07-19" />
-          </div>
-          <div class="input-group">
-            <label for="originalLoanAmount" title="Initial loan principal (not current balance)">Original Loan Amount ($)</label>
-            <input type="number" id="originalLoanAmount" value="467400" />
-          </div>
-          <div class="input-group">
-            <label for="interestRate" title="Annual interest rate on your mortgage">Interest Rate (%)</label>
-            <input type="number" id="interestRate" value="4.99" step="0.125" />
-          </div>
-          <div class="input-group">
-            <label for="mortgageTerm" title="Length of your mortgage (15, 20, or 30 years)">Mortgage Term (years)</label>
-            <select id="mortgageTerm">
-              <option value="15">15 years</option>
-              <option value="20">20 years</option>
-              <option value="30" selected>30 years</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="monthlyPI" title="Auto-calculated from: Loan Amount + Interest Rate + Term">Monthly P&I Payment (calculated)</label>
-            <input type="text" id="monthlyPI" value="$2,023" readonly class="calculated-field" />
-          </div>
-          <div class="input-group">
-            <label for="primaryResidence" title="If yes, you may qualify for up to $500k capital gains exemption when selling">Primary Residence (lived 2 of last 5 years)?</label>
-            <select id="primaryResidence">
-              <option value="yes" selected>Yes</option>
-              <option value="no">No</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="currentHomeValue" title="Today's market value. Used as Year 0 basis for appreciation.">Current Estimated Home Value ($)</label>
-            <input type="number" id="currentHomeValue" value="460000" />
-          </div>
-        </div>
+          <h2>Calculator Inputs</h2>
+          <!-- ... content ... -->
+          
+          <h3>Property Details</h3>
+          <div class="subsection-inputs">
+             <!-- ... (content updated above) ... -->
 
-        <!-- Monthly Costs -->
-        <div class="input-section">
-          <h2>Monthly Costs</h2>
-          <div class="input-group">
-            <label for="monthlyHOA" title="Homeowners association fees">Monthly HOA ($)</label>
-            <input type="number" id="monthlyHOA" value="140" />
+            <div class="input-group">
+              <label for="purchasePrice" title="What you paid when you bought the home">Original Purchase Price ($)</label>
+              <input type="number" id="purchasePrice" value="492000" min="0" step="1000" />
+            </div>
+            <div class="input-group">
+              <label for="currentHomeValue" title="Today's market value. Used as Year 0 basis for appreciation.">Current Est. Home Value ($)</label>
+              <input type="number" id="currentHomeValue" value="460000" min="0" step="1000" />
+            </div>
+            <div class="input-group">
+              <label for="loanOriginDate" title="When your mortgage started. Used to calculate months paid.">Loan Origination Date</label>
+              <input type="date" id="loanOriginDate" value="2022-07-19" />
+            </div>
+            <div class="input-group">
+              <label for="originalLoanAmount" title="Initial loan principal (not current balance)">Original Loan Amount ($)</label>
+              <input type="number" id="originalLoanAmount" value="467400" min="0" step="1000" />
+            </div>
+            <div class="input-group">
+              <label for="interestRate" title="Annual interest rate on your mortgage">Interest Rate (%)</label>
+              <input type="number" id="interestRate" value="4.99" min="0" max="30" step="0.125" />
+            </div>
+            <div class="input-group">
+              <label for="mortgageTerm" title="Length of your mortgage (15, 20, or 30 years)">Mortgage Term (years)</label>
+              <select id="mortgageTerm">
+                <option value="15">15 years</option>
+                <option value="20">20 years</option>
+                <option value="30" selected>30 years</option>
+              </select>
+            </div>
+            <div class="input-group" style="display: none;">
+              <label for="monthlyPI" title="Auto-calculated from: Loan Amount + Interest Rate + Term">Monthly P&I Payment (calculated)</label>
+              <input type="text" id="monthlyPI" value="$2,023" readonly class="calculated-field" />
+            </div>
+            <div class="input-group">
+              <label for="primaryResidence" title="Have you used this property as your primary residence for 2 of the last 5 years? If yes, you may qualify for up to $500k capital gains exemption when selling">Primary Residence? (2/5)</label>
+              <select id="primaryResidence">
+                <option value="yes" selected>Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            
+            <div class="input-group">
+              <label for="yearsToHold" title="Number of years to hold property to project and compare">Years to Hold</label>
+              <input type="number" id="yearsToHold" value="10" min="1" max="30" />
+            </div>
           </div>
-          <div class="input-group">
-            <label for="monthlyTaxes" title="Property tax ÷ 12">Monthly Property Taxes ($)</label>
-            <input type="number" id="monthlyTaxes" value="272" />
-          </div>
-          <div class="input-group">
-            <label for="monthlyInsurance" title="Homeowners insurance ÷ 12">Monthly Home Insurance ($)</label>
-            <input type="number" id="monthlyInsurance" value="12" />
-          </div>
-          <div class="input-group">
-            <label for="monthlyMaintenance" title="Reserve for repairs (typically 1% of home value ÷ 12)">Monthly Maintenance Reserve ($)</label>
-            <input type="number" id="monthlyMaintenance" value="100" />
-          </div>
-        </div>
 
-        <!-- Rental Assumptions -->
-        <div class="input-section">
-          <h2>Rental Assumptions</h2>
-          <div class="input-group">
-            <label for="rentalPrice" title="Expected monthly rent you can charge">Rental Price per Month ($)</label>
-            <input type="number" id="rentalPrice" value="2300" />
-          </div>
-          <div class="input-group">
-            <label for="annualRentIncrease" title="How much rent increases each year">Annual Rent Increase (%)</label>
-            <input type="number" id="annualRentIncrease" value="3" step="0.5" />
-          </div>
-          <div class="input-group">
-            <label for="propertyMgmtFee" title="% of rent paid to property manager (0 if self-managing)">Property Management Fee (%)</label>
-            <input type="number" id="propertyMgmtFee" value="0" step="1" />
-          </div>
-          <div class="input-group">
-            <label for="costsToRent" title="Prep costs before renting (cleaning, repairs, etc.)">One-time Costs to Get Rent-Ready ($)</label>
-            <input type="number" id="costsToRent" value="1000" />
-          </div>
-          <div class="input-group">
-            <label for="rentalTaxRate" title="Your marginal tax rate on rental income">Tax Rate on Rental Profit (%)</label>
-            <input type="number" id="rentalTaxRate" value="24" step="1" />
-          </div>
-        </div>
+          <hr class="section-divider">
 
-        <!-- Sale Assumptions -->
-        <div class="input-section">
-          <h2>Sale Assumptions</h2>
-          <div class="input-group">
-            <label for="homeAppreciation" title="Expected annual increase in home value">Annual Home Appreciation (%)</label>
-            <input type="number" id="homeAppreciation" value="2" step="0.5" />
+          <h3>Monthly Costs</h3>
+          <div class="subsection-inputs">
+            <div class="input-group">
+              <label for="monthlyHOA" title="Homeowners association fees">HOA ($)</label>
+              <input type="number" id="monthlyHOA" value="140" min="0" step="10" />
+            </div>
+            <div class="input-group">
+              <label for="monthlyTaxes" title="Property tax ÷ 12">Property Taxes ($)</label>
+              <input type="number" id="monthlyTaxes" value="272" min="0" step="10" />
+            </div>
+            <div class="input-group">
+              <label for="monthlyInsurance" title="Homeowners insurance ÷ 12">Home Insurance ($)</label>
+              <input type="number" id="monthlyInsurance" value="12" min="0" step="10" />
+            </div>
+            <div class="input-group">
+              <label for="monthlyMaintenance" title="Reserve for repairs (typically .5-1% of home value ÷ 12)">Maintenance Reserve ($)</label>
+              <input type="number" id="monthlyMaintenance" value="100" min="0" step="10" />
+            </div>
           </div>
-          <div class="input-group">
-            <label for="sellingFees" title="Agent commission + closing costs (typically 5-6%)">Selling Fees (%)</label>
-            <input type="number" id="sellingFees" value="6" step="0.5" />
+
+          <hr class="section-divider">
+
+          <h3>Rental Assumptions</h3>
+          <div class="subsection-inputs">
+            <div class="input-group">
+              <label for="rentalPrice" title="Expected monthly rent you can charge">Monthly Rent ($)</label>
+              <input type="number" id="rentalPrice" value="2300" min="0" step="50" />
+            </div>
+            <div class="input-group">
+              <label for="annualRentIncrease" title="How much rent increases each year">Annual Rent Increase (%)</label>
+              <input type="number" id="annualRentIncrease" value="3" min="0" max="20" step="0.5" />
+            </div>
+            <div class="input-group">
+              <label for="propertyMgmtFee" title="% of rent paid to property manager (0 if self-managing)">Property Mgmt Fee (%)</label>
+              <input type="number" id="propertyMgmtFee" value="0" min="0" max="100" step="1" />
+            </div>
+            <div class="input-group">
+              <label for="rentalTaxRate" title="Your marginal tax rate on rental income">Tax Rate on Income (%)</label>
+              <input type="number" id="rentalTaxRate" value="24" min="0" max="100" step="1" />
+            </div>
           </div>
-          <div class="input-group">
-            <label for="costsToSell" title="Prep costs before selling (staging, repairs, etc.)">One-time Costs to Get Sale-Ready ($)</label>
-            <input type="number" id="costsToSell" value="2000" />
-          </div>
-          <div class="input-group">
-            <label for="capitalGainsTax" title="Tax rate on profit from sale (15-20% federal)">Capital Gains Tax Rate (%)</label>
-            <input type="number" id="capitalGainsTax" value="20" step="1" />
-          </div>
-          <div class="input-group">
-            <label for="investmentReturn" title="Expected return if you invest the sale proceeds">Expected Investment Return (%)</label>
-            <input type="number" id="investmentReturn" value="6" step="0.5" />
+
+          <hr class="section-divider">
+
+          <h3>Return, Fees, and Tax Assumptions</h3>
+          <div class="subsection-inputs">
+            <div class="input-group">
+              <label for="homeAppreciation" title="Expected annual increase in home value">Home Appreciation (%)</label>
+              <input type="number" id="homeAppreciation" value="2" min="-20" max="30" step="0.5" />
+            </div>
+            <div class="input-group">
+              <label for="sellingFees" title="Agent commission + closing costs (typically 5-6%)">Selling Fees (%)</label>
+              <input type="number" id="sellingFees" value="6" min="0" max="100" step="0.5" />
+            </div>
+            <div class="input-group">
+              <label for="capitalGainsTax" title="Tax rate on profit from sale (15-20% federal)">Capital Gains Tax Rate (%)</label>
+              <input type="number" id="capitalGainsTax" value="20" min="0" max="100" step="1" />
+            </div>
+            <div class="input-group">
+              <label for="investmentReturn" title="Expected return if you invest the sale proceeds">Investment Return (%)</label>
+              <input type="number" id="investmentReturn" value="6" min="-50" max="50" step="0.5" />
+            </div>
           </div>
         </div>
 
         <!-- Summary (inline with Analysis Period) -->
-        <div id="summary" class="summary inline-summary"></div>
-      </div>
 
-      <!-- Analysis Period + Summary Row -->
-      <div class="analysis-summary-row">
-        <div class="input-section analysis-period">
-          <h2>Analysis Period</h2>
-          <div class="input-group">
-            <label for="yearsToHold" title="Number of years to project and compare">Years to Analyze</label>
-            <input type="number" id="yearsToHold" value="10" min="1" max="30" />
-          </div>
-        </div>
-        <div id="summaryInline" class="summary summary-inline"></div>
+
+        <!-- Summary (sidebar) -->
+        <div id="summary" class="summary vertical-summary"></div>
       </div>
 
       <!-- Chart -->
       <div class="chart-container">
-        <h2>Net Worth Comparison Over Time</h2>
+        <h2>Comparison Over Time</h2>
         <canvas id="comparisonChart"></canvas>
       </div>
 
@@ -162,83 +160,20 @@
               <th title="= Current value + annual appreciation">Home Value</th>
               <th title="Remaining mortgage balance">Loan Balance</th>
               <th title="= Home Value - Loan Balance">Equity</th>
+              <th title="Estimated costs to sell (Agent fees + Closing costs)">Seller Fees</th>
+              <th title="Estimated Capital Gains Tax">Capital Gains</th>
               <th title="Net proceeds after selling fees and capital gains tax&#10;&#10;= Sale Price - Loan - Fees - Taxes">Cash Out Value</th>
+              <th title="Annual Profit/Loss from rental income&#10;&#10;= Rent - Expenses - Mgmt - Taxes">Annual Rent P/L</th>
               <th title="Cumulative Profit/Loss from rental income&#10;&#10;= Rent - Expenses - Mgmt - Taxes">Cumulative Rent P/L</th>
-              <th title="Your total profit/loss if sold after the corresponding # of years&#10;&#10;= Cash Out Value + Cumulative Rent P/L&#10;&#10;Not counting underwater Cash Out Value">Cash Out + Rent P/L</th>
-
-
-              <th title="Accumulated wealth if you sold the home right now and instead invested the rental P/L each year&#10;&#10;Not counting underwater Cash Out Value">Sell Year 0 +<br />Invest Cash Flow</th>
+              <th title="Your total profit/loss if sold after the corresponding # of years&#10;&#10;= Cash Out Value + Cumulative Rent P/L">Cash Out + Rent P/L</th>
+              <th title="Net proceeds from selling at Year 0, invested over time.&#10;&#10;If Year 0 proceeds are positive, they grow by the Investment Return %.&#10;If Year 0 proceeds are negative, the value remains constant.">Sell Now +<br />Invest Proceeds</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <!-- Detailed Breakdown -->
-      <div class="details-container">
-        <h2>Detailed Annual Breakdown</h2>
-        <div class="details-with-legend">
-          <div id="detailedBreakdown"></div>
-          <div class="calculation-legend">
-            <h3>📐 Calculation Reference</h3>
-            
-            <div class="legend-section">
-              <h4>Property</h4>
-              <dl>
-                <dt>Home Value</dt>
-                <dd>Current Value × (1 + Appreciation)^Years</dd>
-                <dt>Loan Balance</dt>
-                <dd>Amortization formula based on original loan, rate, term, and months paid</dd>
-                <dt>Equity</dt>
-                <dd>Home Value - Loan Balance</dd>
-              </dl>
-            </div>
 
-            <div class="legend-section">
-              <h4>Rental Scenario</h4>
-              <dl>
-                <dt>Annual Rent</dt>
-                <dd>Monthly Rent × 12 × (1 + Rent Increase)^Years</dd>
-                <dt>Annual Expenses</dt>
-                <dd>(P&I + Taxes + Insurance + HOA + Maintenance) × 12 + Management Fee</dd>
-                <dt>Gross Profit</dt>
-                <dd>Annual Rent - Annual Expenses</dd>
-                <dt>Tax on Rental</dt>
-                <dd>max(0, Gross Profit) × Tax Rate</dd>
-                <dt>Net Cash Flow</dt>
-                <dd>Gross Profit - Tax</dd>
-                <dt>Cumulative Net Worth</dt>
-                <dd>Equity + Sum of all Net Cash Flows</dd>
-              </dl>
-            </div>
-
-            <div class="legend-section">
-              <h4>Sale Scenario</h4>
-              <dl>
-                <dt>Selling Costs</dt>
-                <dd>Sale Price × Selling Fee % + Prep Costs</dd>
-                <dt>Net Proceeds</dt>
-                <dd>Sale Price - Loan Balance - Selling Costs</dd>
-                <dt>Capital Gain</dt>
-                <dd>Sale Price - Original Purchase Price</dd>
-                <dt>Cap Gains Tax</dt>
-                <dd>Capital Gain × Tax Rate<br><em>Primary residence: $500k exempt if sold within 3 years</em></dd>
-                <dt>Invested Value</dt>
-                <dd>Net After-Tax Proceeds × (1 + Investment Return)^Years Remaining</dd>
-              </dl>
-            </div>
-
-            <div class="legend-section">
-              <h4>⚠️ Assumptions</h4>
-              <ul>
-                <li>Vacancy rate assumed 0%</li>
-                <li>No major capital expenditures</li>
-                <li>Tax rates remain constant</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <script src="calculator.js"></script>
