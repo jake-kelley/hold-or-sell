@@ -1,4 +1,4 @@
-# Rent vs Sell Calculator
+# holdorsell - A Rent vs Sell Calculator
 
 A client-side tool to compare the financial outcomes of renting your property vs selling it today.
 
